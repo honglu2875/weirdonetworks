@@ -2,10 +2,11 @@ import tensorflow as tf
 import sonnet as snt
 import tensorflow_datasets as tfds # tensorflow datasets
 from tqdm import tqdm
+import random
 
-from .step import step
-#from .. import nets
-#from ..nets import utils
+from nets import MLP
+from nets.utils import rand_trans, step
+
 
 def process_batch(images, labels):
     images = tf.squeeze(images, axis=[-1])
@@ -14,13 +15,12 @@ def process_batch(images, labels):
     images = tf.clip_by_value(images, 0., 1.)
     return images, labels
 
-def progress_bar(generator):
+def progress_bar(generator, size, batch_size=1):
   return tqdm(
       generator,
       unit='images',
       unit_scale=batch_size,
-      total=(num_images // batch_size) * num_epochs)
-      #total=len(generator))
+      total=size)
 
 def mnist(split, batch_size=100): #batch is deactivated to fit the unpack and transformation
     dataset, ds_info = tfds.load('mnist:3.*.*', split=split, as_supervised=True,
@@ -65,9 +65,9 @@ def main():
 
     opt = snt.optimizers.Adam(learning_rate=0.001)
 
-    num_epochs = 10
+    num_epochs = 1
     #model = CNN(use_batch_norm=False)
-    model = MLP_transformed()
+    model = MLP()
     #mlp = MLP()
     #model = quadMLP()
 
@@ -83,8 +83,8 @@ def main():
 
 
     #for images, labels in progress_bar(mnist_train.repeat(num_epochs)):
-    for images, labels in progress_bar(tr * num_epochs):
-        loss, n = step(tf.reshape(tf.convert_to_tensor(images), [-1,28,28,1]), tf.convert_to_tensor(labels), mlp, opt2)
+    for images, labels in progress_bar(tr * num_epochs, (num_images // BATCH_SIZE) * num_epochs, batch_size=BATCH_SIZE):
+        loss, n = step(tf.reshape(tf.convert_to_tensor(images), [-1,28,28,1]), tf.convert_to_tensor(labels), model, opt)
         grad_norm.append(n)
         loss_all.append(loss)
 

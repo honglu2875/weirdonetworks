@@ -1,3 +1,3 @@
-from amlp import *
-from qmlp import *
-from mlp import *
+from .amlp import *
+from .qmlp import *
+from .mlp import *

@@ -1,5 +1,5 @@
 import cv2
-import numpy
+import numpy as np
 import random
 
 def rotate_image(image, angle):

@@ -1,5 +1,6 @@
-import util
+from . import utils
 import sonnet as snt
+import tensorflow as tf
 
 class AMLP(snt.Module):
 
