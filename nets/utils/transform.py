@@ -156,7 +156,25 @@ def gen_orbit(image, D: int, BORDER_VAL=-1):
         results.append(trans(image, angle, scale, left, top, sheer=sheer, BORDER_VAL=BORDER_VAL))
     return results
 
+def gen_matrix(x: int, y:int, D: int=4):
+    # A transformation on an image can be realized as a (permutation) linear transformation (flatten the image and give the pixels coordinates).
+    # This function generates such matrices.
+    # x,y: integers, indicating the size of the image
+    # D: integer, same as gen_orbit
 
+    M_init = np.arange(x*y).reshape((x,y))
+    M = gen_orbit(M_init, D, BORDER_VAL=-1)
+
+    res = []
+    for m in M:
+        T = np.zeros((x*y, x*y))
+        for i in range(x*y):
+            e = m.astype(int)[i//y][i%y]
+            if e!=-1:
+                T[i][e] = 1
+        res.append(T)
+
+    return res
 
 
 
