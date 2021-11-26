@@ -1,7 +1,7 @@
 # weirdonetworks
 This is a collection of non-conventional neural networks born out of my imagination. Maybe none of them has theoretic value but who knows! Collecting them in a GitHub repo makes notebook experiments much easier (and I do have a lot of experiments written!). For certain networks, the training code is special and will be included as well.
 
-Everything is written to fit Deepmind's Sonnet package, because I like the abstraction and the freedom. The networks are written as a subclass of sonnet.Module
+Everything is written to fit Deepmind's Sonnet package because of personal preference. The networks are written as a subclass of sonnet.Module
 
 ---
 # Neural networks for MNIST
@@ -19,13 +19,19 @@ Engineers like to scale up, use big networks, etc. It's powerful, and a lot of t
 
 The first question is analytic, and will have to do with the loss landscape and the properties of functions at the global minimum. 
 
-The second question is geometric. A group acting on the input data and we need to answer what the best way to have a "network" that already incorporates the symmetry. There are a lot of studies done (enlarge the training set, graph neural networks, parameter sharing), but they have a bit ad hoc flavor and perhaps we do not exhaust all the good solutions yet. Enlarging the training set by sampling/generating the group orbits is the industrial standard method. But how do we know that the training set is well-distributed in the space of all possible inputs, and how is whole network "stable" under the group action (|| F(gx) - F(x) || < epsilon) for *arbitrary* input? But of course I do not yet have a better answer.
+The second question is geometric. A group acting on the input data and we need to answer what the best way to have a "network" that already incorporates the symmetry. There are a lot of studies done (enlarge the training set, graph neural networks, parameter sharing, etc.), but they have a bit of ad hoc flavor and perhaps we have not exhausted all the useful solutions yet. Enlarging the training set by sampling/generating the group orbits is the industry standard. But is the whole network "stable" under the group action (|| F(gx) - F(x) || < epsilon) for *arbitrary* input? Without intrinsic structural reasons, my guess is that the training set needs to be sufficiently big (and the network might not be sufficiently overparametrized?) and very well-distributed.
 
 The networks:
 
 I love MLP and will stick to MLP most of the time! Here we go!
 
-## 1. Quadratic MLP
-The idea is stupid
+## 1. Quadratic (or higher degree) MLP
+The idea is very straightforward. It is a raw implementation of the invariant theory. Suppose the input is [x_1,x_2,...,x_n], we first generate all degree-d monomials [x_{i_1}...x_{i_d}] and then feed it through MLP. Why? If there is a compact group G acting on the variables x_1,...,x_n, the ring of invariants will be finitely generated, and they will (universally) approximate G-invariant functions under reasonable conditions. By using all the degree-d monomials, the hope is that it also "learns" the invariant functions (need experiments. May not work!). But starting with simple MLP, as they are piecewise linear, there is no guarantee that the network will be "stable" in whatever sense under the group action when it sees a piece of unseen data.
+
+Need experiment
+- whether the network is able to "choose" invariant polynomials
+- choose a smaller set of monomial? Also how to get rid of redundancy.
+- find a way to measure how "stable" the trained network is under the group action
+- use Gröbner basis to only find invariant basis? 
 
 ## 2. Asynchronous MLP

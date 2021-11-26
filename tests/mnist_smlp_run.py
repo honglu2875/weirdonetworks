@@ -4,8 +4,8 @@ import tensorflow_datasets as tfds # tensorflow datasets
 from tqdm import tqdm
 from random import random, randrange
 
-from nets import MLP
-from nets.utils import random_trans, step
+from nets import SMLP
+from nets.utils import *
 
 
 def process_batch(images, labels):
@@ -67,11 +67,11 @@ def main():
 
     num_epochs = 1
     #model = CNN(use_batch_norm=False)
-    model = MLP()
+    model = SMLP()
     #mlp = MLP()
     #model = quadMLP()
 
-    BATCH_SIZE = 100
+    BATCH_SIZE = 10
     num_images = len(x_train_trans)
     #num_images = 60000
 

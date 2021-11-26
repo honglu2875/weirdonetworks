@@ -116,7 +116,7 @@ def translate_image(image, left: float, top: float, BORDER_VAL=0):
 def trans(image, angle: float, scale: float, left: float, top: float, sheer: float=.0, BORDER_VAL=0):
     # The full image transformation function. Combine all the above IN A SPECIFIC ORDER.
     # image: np.array of dimension 2
-    # angle: float
+    # angle: float, in degrees
     # scale: float, between 0 and 1
     # left: float, between 0 and 1, indicating the proportion to translate off the left border
     # top: float, between 0 and 1, indicating the proportion to translate off the upside border
@@ -133,6 +133,17 @@ def trans(image, angle: float, scale: float, left: float, top: float, sheer: flo
         left, top, BORDER_VAL=BORDER_VAL)
 
     return result
+
+def random_trans(image, BORDER_VAL=0):
+    # Randomly transform using trans(...)
+    # image: np.array of dimension 2
+
+    angle = random()*360
+    scale = random()*0.5+0.5
+    sheer = random()*0.5
+    left, top = random()*0.5-0.25, random()*0.5-0.25
+
+    return trans(image, angle, scale, left, top, sheer=sheer)
 
 def gen_orbit(image, D: int, BORDER_VAL=-1):
     # Sample a bunch of transformations and generate matrices corresponding to the transformations between flattened coordinates of images.
