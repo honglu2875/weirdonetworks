@@ -28,4 +28,4 @@ I love MLP and will stick to MLP most of the time! Here we go!
 ## 1. Quadratic MLP
 The idea is stupid
 
-## 2. Asynchronous MLP
+## 2. Synchronous MLP
