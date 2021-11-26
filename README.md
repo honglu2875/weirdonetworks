@@ -34,4 +34,4 @@ Need experiment
 - find a way to measure how "stable" the trained network is under the group action
 - use Gröbner basis to only find invariant basis? 
 
-## 2. Asynchronous MLP
+## 2. Synchronous MLP
