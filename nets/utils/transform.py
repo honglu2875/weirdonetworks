@@ -32,10 +32,13 @@ def rotate_image(image, angle: float, BORDER_VAL=0):
 
     res = np.zeros(image.shape) + BORDER_VAL # even faster than creating an array and then set values
     angle_r = angle/360*2*math.pi
+
+    cos = math.cos(-angle_r)
+    sin = math.sin(-angle_r)
     for x in range(sizex):
         for y in range(sizey):
-            qx = int(ox + math.cos(-angle_r) * (x - ox) - math.sin(-angle_r) * (y - oy))
-            qy = int(oy + math.sin(-angle_r) * (x - ox) + math.cos(-angle_r) * (y - oy))
+            qx = int(ox + cos * (x - ox) - sin * (y - oy))
+            qy = int(oy + sin * (x - ox) + cos * (y - oy))
             if qx>=0 and qx<sizex and qy>=0 and qy<sizey:
                 res[x][y] = image[qx][qy]
     # OpenCV only supports uint8 which is really stupid.... Have to write my own but the end result is slightly different. The interpolation mode issue???
@@ -127,7 +130,7 @@ def trans(image, angle: float, scale: float, left: float, top: float, sheer: flo
         scale_image(
         sheer_image(
         rotate_image(
-        image.astype(np.uint8), angle, BORDER_VAL=BORDER_VAL),
+        image, angle, BORDER_VAL=BORDER_VAL),
         sheer, BORDER_VAL=BORDER_VAL),
         scale, BORDER_VAL=BORDER_VAL),
         left, top, BORDER_VAL=BORDER_VAL)
