@@ -2,11 +2,11 @@ from .utils import *
 import sonnet as snt
 import tensorflow as tf
 
-class SMLP_test(snt.Module):
+class SMLP(snt.Module):
 
     def __init__(self, l1=5, l2=10):
 
-        super(SMLP_test, self).__init__()
+        super(SMLP, self).__init__()
         self.flatten = snt.Flatten()
         self.net1 = snt.Linear(l1, name="net1")
         self.net2 = snt.Linear(l2, name="net2")
