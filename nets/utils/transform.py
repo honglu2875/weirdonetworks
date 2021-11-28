@@ -7,18 +7,6 @@ def check_image(image):
     # Check some critical properties of the image input
     assert len(image.shape)==2
 
-def enc(n):
-    # Encode a number (<2^24) into 3 uint8
-    # return a tuple of 3 np.uint8
-    return np.uint8(n-(n>>8<<8)), np.uint8((n>>8)-(n<<16)), np.uint8(n<<16)
-
-def dec(t):
-    # Combine a tuple of 3 np.uint8 into a long integer
-    assert len(t)==3
-
-    return int(t[0]+(t[1]<<8)+(t[2]<<16))
-
-
 
 
 def rotate_image(image, angle: float, BORDER_VAL=0):
@@ -193,6 +181,17 @@ def gen_matrix(x: int, y:int, D: int=4):
 
 
 ########## OBSOLETE ###########
+def enc(n):
+    # Encode a number (<2^24) into 3 uint8
+    # return a tuple of 3 np.uint8
+    return np.uint8(n-(n>>8<<8)), np.uint8((n>>8)-(n<<16)), np.uint8(n<<16)
+
+def dec(t):
+    # Combine a tuple of 3 np.uint8 into a long integer
+    assert len(t)==3
+
+    return int(t[0]+(t[1]<<8)+(t[2]<<16))
+
 def rand_trans(image):
     # Randomly perform a scaling and a rotation
     # image: np.array of dimension 2, fixed size of (28,28)
