@@ -15,6 +15,6 @@ class MLP(snt.Module):
     output = tf.nn.gelu(self.hidden1(output))
     output = tf.nn.gelu(self.hidden2(output))
     output = self.logits(output)
-    return {"logits": output, "softmax": tf.nn.softmax(output)}
 
-mlp = MLP()
+    #return {"logits": output, "softmax": tf.nn.softmax(output)}
+    return output # Only return logits!

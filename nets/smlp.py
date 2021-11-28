@@ -26,4 +26,5 @@ class SMLP(snt.Module):
 
         output = self.logits(self.flatten(output))
 
-        return {"logits": output, "softmax": tf.nn.softmax(output)}
+        #return {"logits": output, "softmax": tf.nn.softmax(output)}
+        return output # Only return logits!

@@ -1,21 +1,20 @@
 import tensorflow as tf
 
 
-def step(inp, y, model, opt, has_batch_norm=False, use_softmax=False):
+def step(inp, y, model, opt, has_batch_norm=False):
     """Performs one optimizer step on a single mini-batch."""
     with tf.GradientTape() as tape:
         ###### CAUTION:
         # If one does not flatten: The model will generate a (_,1) "tensor"
         # If one flatten ("tf.reshape(_,[-1])"), it gives a (_) 1-dimensional "tensor"
         #out = tf.reshape(mlp(tf.cast(inp, dtype=tf.float64)),[-1])
-        if use_softmax:
-            logits_or_softmax = "softmax"
-        else:
-            logits_or_softmax = "logits"
+
+        # The output of the model has to be raw logits!!!
+        
         if has_batch_norm:
-            out = model(tf.cast(inp, dtype=tf.float32), is_training=True)[logits_or_softmax]
+            out = model(tf.cast(inp, dtype=tf.float32), is_training=True)
         else:
-            out = model(tf.cast(inp, dtype=tf.float32))[logits_or_softmax]
+            out = model(tf.cast(inp, dtype=tf.float32))
 
 
 

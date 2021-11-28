@@ -22,4 +22,6 @@ class quadMLP(snt.Module):
 
     output = tf.nn.relu(self.hidden1(output))
     output = self.logits(output)
-    return {"logits": output, "softmax": tf.nn.softmax(output)}
+
+    #return {"logits": output, "softmax": tf.nn.softmax(output)}
+    return output # Only return logits!
