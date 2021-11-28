@@ -22,11 +22,10 @@ The first question is analytic, and will have to do with the loss landscape and 
 The second question is geometric. A group acting on the input data and we need to answer what the best way to have a "network" that already incorporates the symmetry. There are a lot of studies done (enlarge the training set, graph neural networks, parameter sharing, etc.), but they have a bit of ad hoc flavor and perhaps we have not exhausted all the useful solutions yet. Enlarging the training set by sampling/generating the group orbits is the industry standard. But is the whole network "stable" under the group action (|| F(gx) - F(x) || < epsilon) for *arbitrary* input? Without intrinsic structural reasons, my guess is that the training set needs to be sufficiently big (and the network might not be sufficiently overparametrized?) and very well-distributed.
 
 The networks:
-
-I love MLP and will stick to MLP most of the time! Here we go!
+(note: the following models are mathematically equivalent to raw MLP models. The question is whether the domain knowledge about symmetry helps, and whether the networks are born stable under the symmetry.)
 
 ## 1. Quadratic (or higher degree) MLP
-The idea is very straightforward. It is a raw implementation of the invariant theory. Suppose the input is [x_1,x_2,...,x_n], we first generate all degree-d monomials [x_{i_1}...x_{i_d}] and then feed it through MLP. Why? If there is a compact group G acting on the variables x_1,...,x_n, the ring of invariants will be finitely generated, and they will (universally) approximate G-invariant functions under reasonable conditions. By using all the degree-d monomials, the hope is that it also "learns" the invariant functions (need experiments. May not work!). But starting with simple MLP, as they are piecewise linear, there is no guarantee that the network will be "stable" in whatever sense under the group action when it sees a piece of unseen data.
+The idea is very straightforward. It is a raw application of the invariant theory. Suppose the input is [x_1,x_2,...,x_n], we first generate all degree-d monomials [x_{i_1}...x_{i_d}] and then feed it through MLP. Why? If there is a compact group G acting on the variables x_1,...,x_n, the ring of invariants will be finitely generated, and they will (universally) approximate G-invariant functions under reasonable conditions. By using all the degree-d monomials, the hope is that it also "learns" the invariant functions (need experiments. May not work!). But starting with simple MLP, as they are piecewise linear, there is no guarantee that the network will be "stable" in whatever sense under the group action when it sees a piece of unseen data.
 
 Need experiment
 - whether the network is able to "choose" invariant polynomials
@@ -35,3 +34,7 @@ Need experiment
 - use Gröbner basis to only find invariant basis? 
 
 ## 2. Synchronous MLP
+The idea is to literally average over the group action. But the averaging process happens **inside** the network. Given an input x=[x_1,x_2,...,x_n], we generate the set of orbits under the group action G: {gx|g\in G}. Now we feed each gx to the **same** neural network. And the output goes through a couple subsequent dense layers.
+
+Need experiment
+- what if the output goes through symmetric functions first, and then dense layers?
