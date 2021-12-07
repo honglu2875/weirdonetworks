@@ -150,6 +150,7 @@ def gen_orbit(image, D: int, BORDER_VAL=-1, ISO_ONLY=True):
         scales = [1]
         lefts = [0]
         tops = [0]
+        sheers = [0]
     else:
         scales = np.arange(1., 0.5, -0.5 / D)
         lefts = np.arange(0., 0.5, 0.5 / D)
