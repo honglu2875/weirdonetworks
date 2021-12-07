@@ -180,7 +180,7 @@ def gen_matrix(x: int, y:int, D: int=4, ISO_ONLY=True):
         for i in range(x*y):
             e = m.astype(int)[i//y][i%y]
             if e!=-1:
-                T[i][e] = 1
+                T[e][i] = 1
         res.append(T)
 
     return res
