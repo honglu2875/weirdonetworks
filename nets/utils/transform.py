@@ -131,7 +131,7 @@ def random_trans(image, BORDER_VAL=0, ISO_ONLY=True):
 
     angle = random()*360
     if ISO_ONLY:
-        scale, sheer, left, top = 1, 1, 0, 0
+        scale, sheer, left, top = 1, 0, 0, 0
     else:
         scale = random()*0.5+0.5
         sheer = random()*0.5
