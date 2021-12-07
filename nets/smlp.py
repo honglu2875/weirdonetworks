@@ -4,14 +4,15 @@ import tensorflow as tf
 
 class SMLP(snt.Module):
 
-    def __init__(self, l1=5, l2=10):
+    def __init__(self, l1=30, l2=30, D=3, ISO_ONLY=True):
 
         super(SMLP, self).__init__()
         self.flatten = snt.Flatten()
         self.net1 = snt.Linear(l1, name="net1")
         self.net2 = snt.Linear(l2, name="net2")
         self.logits = snt.Linear(10, name="logits")
-        self._mat = tf.convert_to_tensor(gen_matrix(28,28,D=3), dtype=tf.float32)
+        self._mat = tf.convert_to_tensor(gen_matrix(28,28,D=D, ISO_ONLY=ISO_ONLY), dtype=tf.float32)
+
 
     def __call__(self, images, is_training=False):
 

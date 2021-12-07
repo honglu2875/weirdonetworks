@@ -70,8 +70,8 @@ def sheer_image(image, sheer: float, BORDER_VAL=0):
     res = np.zeros(image.shape) + BORDER_VAL
     for x in range(sizex):
         for y in range(sizey):
-            qx = int(x-y*sheer)
-            qy = int(y)
+            qx = math.floor(x-y*sheer)
+            qy = math.floor(y)
             if qx>=0 and qx<sizex and qy>=0 and qy<sizey:
                 res[x][y] = image[qx][qy]
 
@@ -136,7 +136,7 @@ def random_trans(image, BORDER_VAL=0):
 
     return trans(image, angle, scale, left, top, sheer=sheer)
 
-def gen_orbit(image, D: int, BORDER_VAL=-1):
+def gen_orbit(image, D: int, BORDER_VAL=-1, ISO_ONLY=True):
     # Sample a bunch of transformations and generate matrices corresponding to the transformations between flattened coordinates of images.
     # image: np.array of dimension 2
     # D: int, a constant indicating how many angles, scales, etc. will be sampled for each parameter
@@ -146,10 +146,16 @@ def gen_orbit(image, D: int, BORDER_VAL=-1):
     x, y = image.shape
 
     angles = np.arange(0, 360, 360 / D)
-    scales = np.arange(1., 0.5, -0.5 / D)
-    sheers = np.arange(0., 1., 1. / D)
-    lefts = np.arange(0., 0.5, 0.5 / D)
-    tops = np.arange(0., 0.5, 0.5 / D)
+    if ISO_ONLY:
+        scales = [1]
+        lefts = [0]
+        tops = [0]
+    else:
+        scales = np.arange(1., 0.5, -0.5 / D)
+        lefts = np.arange(0., 0.5, 0.5 / D)
+        tops = np.arange(0., 0.5, 0.5 / D)
+        sheers = np.arange(0., 1., 1. / D)
+
 
     index = [(a,sc,sh,l,t) for a in angles for sc in scales for sh in sheers for l in lefts for t in tops]
 
@@ -158,14 +164,14 @@ def gen_orbit(image, D: int, BORDER_VAL=-1):
         results.append(trans(image, angle, scale, left, top, sheer=sheer, BORDER_VAL=BORDER_VAL))
     return results
 
-def gen_matrix(x: int, y:int, D: int=4):
+def gen_matrix(x: int, y:int, D: int=4, ISO_ONLY=True):
     # A transformation on an image can be realized as a (permutation) linear transformation (flatten the image and give the pixels coordinates).
     # This function generates such matrices.
     # x,y: integers, indicating the size of the image
     # D: integer, same as gen_orbit
 
     M_init = np.arange(x*y).reshape((x,y))
-    M = gen_orbit(M_init, D, BORDER_VAL=-1)
+    M = gen_orbit(M_init, D, BORDER_VAL=-1, ISO_ONLY=ISO_ONLY)
 
     res = []
     for m in M:
