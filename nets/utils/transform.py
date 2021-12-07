@@ -125,14 +125,17 @@ def trans(image, angle: float, scale: float, left: float, top: float, sheer: flo
 
     return result
 
-def random_trans(image, BORDER_VAL=0):
+def random_trans(image, BORDER_VAL=0, ISO_ONLY=True):
     # Randomly transform using trans(...)
     # image: np.array of dimension 2
 
     angle = random()*360
-    scale = random()*0.5+0.5
-    sheer = random()*0.5
-    left, top = random()*0.5-0.25, random()*0.5-0.25
+    if ISO_ONLY:
+        scale, sheer, left, top = 1, 1, 0, 0
+    else:
+        scale = random()*0.5+0.5
+        sheer = random()*0.5
+        left, top = random()*0.5-0.25, random()*0.5-0.25
 
     return trans(image, angle, scale, left, top, sheer=sheer)
 
