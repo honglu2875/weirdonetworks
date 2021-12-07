@@ -25,8 +25,8 @@ def rotate_image(image, angle: float, BORDER_VAL=0):
     sin = math.sin(-angle_r)
     for x in range(sizex):
         for y in range(sizey):
-            qx = int(ox + cos * (x - ox) - sin * (y - oy))
-            qy = int(oy + sin * (x - ox) + cos * (y - oy))
+            qx = math.floor(ox + cos * (x - ox) - sin * (y - oy))
+            qy = math.floor(oy + sin * (x - ox) + cos * (y - oy))
             if qx>=0 and qx<sizex and qy>=0 and qy<sizey:
                 res[x][y] = image[qx][qy]
     # OpenCV only supports uint8 which is really stupid.... Have to write my own but the end result is slightly different. The interpolation mode issue???
