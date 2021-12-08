@@ -69,7 +69,7 @@ def dream(inp, model, opt, D=100, ISO_ONLY=True, DEBUG=False):
     grads = tape.gradient(loss, params) # Get the average gradient (non-persistent because we redo gradient soon)
 
     # Take one sample, generate an orbit, and suppress the variance in the orbit
-    sample = inp[random.randrange(0, len(inp)]
+    sample = inp[random.randrange(0, len(inp))]
     with tf.GradientTape() as tape:
         o = tf.cast(
             tf.convert_to_tensor(gen_orbit(sample, D=D, ISO_ONLY=ISO_ONLY)), dtype=tf.float32
