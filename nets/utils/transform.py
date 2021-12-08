@@ -13,6 +13,7 @@ def rotate_image(image, angle: float, BORDER_VAL=0):
     # image: np.array of dimension 2
     # angle: float, indicating the angle
 
+    image = np.array(image) # The input has to be converted to np.ndarray. Note: the whole thing applies to tensors, but is crazily slow!
     check_image(image)
 
     ox, oy = tuple((np.array(image.shape) - 1) / 2)

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from random import random
+from random import randrange
 from .transform import *
 
 def step(inp, y, model, opt, has_batch_norm=False):
@@ -51,7 +51,7 @@ def step(inp, y, model, opt, has_batch_norm=False):
     return ret
 
 
-def dream(inp, model, opt, D=100, ISO_ONLY=True, DEBUG=False):
+def dream(inp, y, model, opt, D=100, ISO_ONLY=True, DEBUG=False, LAYER_WISE=False):
     # Enjoy the sweet dream
     # inp: the FULL input
     # model: the model to fall into sleep
@@ -69,7 +69,7 @@ def dream(inp, model, opt, D=100, ISO_ONLY=True, DEBUG=False):
     grads = tape.gradient(loss, params) # Get the average gradient (non-persistent because we redo gradient soon)
 
     # Take one sample, generate an orbit, and suppress the variance in the orbit
-    sample = inp[random.randrange(0, len(inp))]
+    sample = inp[randrange(0, len(inp))]
     with tf.GradientTape() as tape:
         o = tf.cast(
             tf.convert_to_tensor(gen_orbit(sample, D=D, ISO_ONLY=ISO_ONLY)), dtype=tf.float32
@@ -77,18 +77,23 @@ def dream(inp, model, opt, D=100, ISO_ONLY=True, DEBUG=False):
         r = tf.nn.softmax(model(o))
         r = tf.math.reduce_std(r, axis=0)
         assert len(r.shape) == 1
-        r = tf.nn.reduce_sum(r)
+        r = tf.math.reduce_sum(r)
 
     params = model.trainable_variables
     rgrads = tape.gradient(r, params)
 
-    d = tf.math.reduce_sum(tf.math.multiply(rgrads,grads))/tf.math.reduce_sum(tf.math.multiply(grads,grads))
-    opt.apply(rgrads-tf.math.multiply(d, grads), params) # Apply the projection of the suppression gradient to the orthogonal plane of the loss gradient
-
-    # Debug:
-    if DEBUG:
-        print(grads)
-        print(rgrads)
-        print(rgrads-tf.math.multiply(d, grads))
+    projected_gradient = []
+    if LAYER_WISE:
+        assert len(grads) == len(rgrads) and len(grads) == len(params)
+        for g, rg in zip(grads, rgrads):
+            d = tf.math.reduce_sum(tf.math.multiply(rg,g)) / tf.math.reduce_sum(tf.math.multiply(g,g))
+            projected_gradient.append(rg-tf.math.multiply(d, g))
+        opt.apply(tuple(projected_gradient), params)
+    else:
+        flattened_g = tf.concat( [tf.reshape(x, [-1]) for x in grads], axis=0 )
+        flattened_rg = tf.concat( [tf.reshape(x, [-1]) for x in rgrads], axis=0 )
+        d = tf.math.reduce_sum(tf.math.multiply(flattened_rg,flattened_g)) / tf.math.reduce_sum(tf.math.multiply(flattened_g,flattened_g))
+        projected_gradient = tuple([rgrads[i]-tf.math.multiply(d,grads[i]) for i in range(len(rgrads))])
+        opt.apply(projected_gradient, params)
 
     return r
