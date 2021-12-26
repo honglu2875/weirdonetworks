@@ -1,7 +1,9 @@
 # weirdonetworks
-This is a collection of non-conventional neural networks born out of my imagination. Maybe none of them has theoretic value but who knows! Collecting them in a GitHub repo makes notebook experiments much easier (and I do have a lot of experiments written!). For certain networks, the training code is special and will be included as well.
+This repo includes:
+- a collection of non-conventional neural networks born out of my imagination,
+- an experiment on measuring the stability under transformations of transfer-learning using popular pre-trained models of computer visions. 
 
-Everything is written to fit Deepmind's Sonnet package because of personal preference. The networks are written as a subclass of sonnet.Module
+Non-conventional NNs are written to fit Deepmind's Sonnet package because of personal preference. The networks are written as a subclass of sonnet.Module
 
 ---
 # Neural networks for MNIST
@@ -38,3 +40,7 @@ The idea is to literally average over the group action. But the averaging proces
 
 Need experiment
 - what if the output goes through symmetric functions first, and then dense layers?
+
+---
+Experiments on stability of models under transformation
+
