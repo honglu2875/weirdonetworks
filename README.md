@@ -1,32 +1,18 @@
 # weirdonetworks
 This repo includes:
-- a collection of non-conventional neural networks born out of my imagination,
-- an experiment on measuring the stability under transformations of transfer-learning using popular pre-trained models of computer visions. 
+- a collection of non-conventional neural networks born in my study (under nets/),
+- an experiment on measuring the stability under transformations of transfer-learning using popular pre-trained models of computer visions. See [THIS NOTEBOOK](https://github.com/honglu2875/weirdonetworks/blob/main/stability_measuring.ipynb)
 
-Non-conventional NNs are written to fit Deepmind's Sonnet package because of personal preference. The networks are written as a subclass of sonnet.Module
+The NNs are written to fit Deepmind's Sonnet package because of personal preference. The networks are written as a subclass of sonnet.Module
 
 ---
-# Neural networks for MNIST
-So the main theme here is image recognition. Despite MNIST being extremely simple (some say as simple as "hello, world" in C) which I mildly disagree, it is at least a great benchmark, source of inspirations and a perfect testing problem.
-
-I always vent about two things: 1. BatchNorm, 2. Conv2D.
-- I won't use BatchNorm because I do not aim to find a network that can recognize a bunch of digits 100% correctly without being able to recognize a single frame reasonably well. If there exists an abstraction (neural-network-like model) of human recognition, it has to be able to deal with single frames as well as a collection of frames.
-- I understand that convolutional networks can be good in real-world engineering sense. But I'm not a huge believer of convolution networks, as they are ultimately a special form of linear transformation which bears no theoretic difference than MLP. My personal bias is that it sometimes works well perhaps because of the domain knowledge (inspired by human vision). But... whatever. 
-
-Some thoughts:
-
-Engineers like to scale up, use big networks, etc. It's powerful, and a lot of the brightest minds have been working around it. However, as a mathematician, I am particularly attracted by the **inverse** of scaling:
-1. How can we find the minimal network that solves certain problem reasonably well.
-2. How can we design a small network that still consists of a lot of important properties (e.g., symmetry of the input).
-
-The first question is analytic, and will have to do with the loss landscape and the properties of functions at the global minimum. 
-
-The second question is geometric. A group acting on the input data and we need to answer what the best way to have a "network" that already incorporates the symmetry. There are a lot of studies done (enlarge the training set, graph neural networks, parameter sharing, etc.), but they have a bit of ad hoc flavor and perhaps we have not exhausted all the useful solutions yet. Enlarging the training set by sampling/generating the group orbits is the industry standard. But is the whole network "stable" under the group action (|| F(gx) - F(x) || < epsilon) for *arbitrary* input? Without intrinsic structural reasons, my guess is that the training set needs to be sufficiently big (and the network might not be sufficiently overparametrized?) and very well-distributed.
-
 The networks:
-(note: the following models are mathematically equivalent to raw MLP models. The question is whether the domain knowledge about symmetry helps, and whether the networks are born stable under the symmetry.)
+(The motivation of keeping this library is to document my hand-written neural networks while experimenting.)
+
 
 ## 1. Quadratic (or higher degree) MLP
+``` from weirdonetworks.nets import QuadMLP```
+
 The idea is very straightforward. It is a raw application of the invariant theory. Suppose the input is [x_1,x_2,...,x_n], we first generate all degree-d monomials [x_{i_1}...x_{i_d}] and then feed it through MLP. Why? If there is a compact group G acting on the variables x_1,...,x_n, the ring of invariants will be finitely generated, and they will (universally) approximate G-invariant functions under reasonable conditions. By using all the degree-d monomials, the hope is that it also "learns" the invariant functions (need experiments. May not work!). But starting with simple MLP, as they are piecewise linear, there is no guarantee that the network will be "stable" in whatever sense under the group action when it sees a piece of unseen data.
 
 Need experiment
@@ -36,11 +22,51 @@ Need experiment
 - use Gröbner basis to only find invariant basis? 
 
 ## 2. Synchronous MLP
+``` from weirdonetworks.nets import SMLP```
+
 The idea is to literally average over the group action. But the averaging process happens **inside** the network. Given an input x=[x_1,x_2,...,x_n], we generate the set of orbits under the group action G: {gx|g\in G}. Now we feed each gx to the **same** neural network. And the output goes through a couple subsequent dense layers.
 
 Need experiment
 - what if the output goes through symmetric functions first, and then dense layers?
 
+## (TO BE ADDED)
 ---
-Experiments on stability of models under transformation
 
+# p.s. some math notes on the [experiment](https://github.com/honglu2875/weirdonetworks/blob/main/stability_measuring.ipynb).
+*(THIS IS A RESEARCH PROJECT IN-PROGRESS)*
+```
+Here we propose two metric to describe the stability of a model under a transformation.
+
+
+## Notation setup
+In our small scale setup, we assume that in the last layer we use sigmoid to classify binary classes. Also assume the input space is n-dimensional.
+
+- $F: R^n\rightarrow R^n$ a piecewise-linear function according to a trained model. 
+
+- $S=\{s: R^n\rightarrow R^n\}$ the (topological) space (most often manifolds) of transformations (endomorphisms) that we want to apply. In this notebook, we sample the rotations. It is NOT closed under compositions! For example, rotating turns some pixels out of bound and a further rotation forces us to fill in boundary values. 
+
+- Assume $S$ is compact and has volume $1$ ($\int_Sds=1$).
+
+Remark (vent?):
+1. In the literature, people open say that $S$ forms a group and cite the group axioms. In a lot of scenarios outside of computer vision, this is indeed suitable. But when we talk about transformations on "images", the whole math falls apart:
+    - Because 1. images are usually represented in a rectangular frame and 2. images are pixelated, the image transformations almost never form a group!
+    - Without group axioms we might still have a monoid action, but even the "action" part falls apart: $$f\circ g(x) \neq (f\circ g)(x), \qquad f,g\in S$$
+
+Is it "almost" a group action? No, not even close. Gladly, most papers involving image transforms do not essentially use the group action on functions, therefore not much is invalidated. This is simply a very dangerous practise that's worth being pointed out.
+
+
+
+## Transformation variance
+Fix an input $x\in S$, we define the transformation variance as follows:
+$$ v=\int_S \left((f\circ s')(x)-\int_S(f\circ s)(x)ds\right)^2 ds' $$
+When $S$ is discrete with normalized discrete measure (evaluate to $1/|S|$ on every point), this is literally the variance of the set.
+
+This has a direct meaning: when we transform the image, the predicted probability should fluctuate as little as possible. It has its limit: it does not take how violence the fluctuation is into consideration. This is reflected the most in the example when the rotation of an image {\bf should} yield a different answer (e.g., recognizing 6 and 9 in MNIST). Such information is encoded in the derivatives under transformations.
+
+## Transformation difference
+Fix an input $x\in S$, assume $S$ forms a Riemannian manifold (locally Euclidean with a compatible measure induced by the metric), we define the transformation difference as follows:
+$$d=\int_S\|\nabla_s(f\circ s)\|_nds,$$
+where the gradient is taken over $s\in S$ and $\|\cdot\|_n$ is the $\mathcal l_n$-norm. In this notebook, $\mathcal l_1$-norm is used. This measures how fierce the fluctuation of value it is when we transform the image through $S$.
+
+Note that this definition does not generalize to discrete sets to automatically include a discrete version. But an approximate version of the gradient and the integral is easy to formulate.
+```
