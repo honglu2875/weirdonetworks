@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -64,7 +65,11 @@ def ev_rotation_stability(model, test, MAX_IMG=100, D=10, NEED_RESCALING=False):
         pred.append( np.reshape(model(tf.convert_to_tensor(d)), -1) )
 
     pred = np.array(pred)
-    var = np.var(pred, axis=0)
-    dif = np.average(abs(pred[:-2,:] - pred[1:-1,:]), axis=0)
+    var = np.sum(
+        np.var(pred, axis=0), axis=tuple(range(1,len(pred.shape)-1))
+        )
+    dif = np.sum(
+        np.average(abs(pred[:-2,:] - pred[1:-1,:]), axis=0), axis=tuple(range(1,len(pred.shape)-1))
+        )
 
     return var, dif, pred, y_target
