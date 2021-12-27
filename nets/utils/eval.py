@@ -9,13 +9,23 @@ def show_pic(img, NROWS=4, NCOLS=4):
     fig = plt.gcf()
     fig.set_size_inches(NCOLS*4, NROWS*4)
 
+    assert len(np.array(img).shape) == 4
+
+    if np.array(img).shape[3] == 1:
+        GREYSCALE = True
+    else:
+        GREYSCALE = False
+
     for i, im in enumerate(img):
         if i>=NROWS*NCOLS: break
         # Set up subplot; subplot indices start at 1
         sp = plt.subplot(NROWS, NCOLS, i + 1)
         sp.axis('Off') # Don't show axes (or gridlines)
 
-        plt.imshow(im)
+        if GREYSCALE:
+            plt.imshow(np.reshape(im, np.array(im).shape[:2]), cmap='gray')
+        else:
+            plt.imshow(im)
 
 
     plt.show()
