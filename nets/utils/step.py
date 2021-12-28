@@ -126,7 +126,7 @@ def dif(inp, model, eps_angle, NUM_SAMPLE):
 
     return o/NUM_SAMPLE
 
-def dream_v2(inp, model, opt, eps_angle=1, NUM_SAMPLE=10, DEBUG=False, USE_VAR=True):
+def dream_v2(inp, y, model, opt, eps_angle=1, NUM_SAMPLE=10, DEBUG=False, USE_VAR=True):
     # Enjoy the sweet dream v2 (rotation only)
     # inp: a batch of input
     # model: the model to fall into sleep
