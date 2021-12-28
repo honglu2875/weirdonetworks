@@ -97,3 +97,70 @@ def dream(inp, y, model, opt, D=100, ISO_ONLY=True, DEBUG=False, LAYER_WISE=Fals
         opt.apply(projected_gradient, params)
 
     return r
+
+    from random import random
+
+@tf.function
+def var(inp, model, NUM_SAMPLE):
+    r = tf.stack([model(
+                tf.cast(
+                tf.convert_to_tensor(tfa.image.rotate(inp, random()*360)), dtype=tf.float32
+            )) for _ in range(NUM_SAMPLE)], axis=-1)
+
+    r = tf.math.reduce_std(r, axis=-1)
+    return r
+
+@tf.function
+def dif(inp, model, eps_angle, NUM_SAMPLE):
+    o = 0
+    for _ in range(NUM_SAMPLE):
+        a = random()*360.
+        o += abs(
+            model(
+                tf.cast(
+                tf.convert_to_tensor(tfa.image.rotate(inp, a)), dtype=tf.float32
+            )) - model(
+                tf.cast(
+                tf.convert_to_tensor(tfa.image.rotate(inp, a+random()*eps_angle)), dtype=tf.float32
+            )))
+
+    return o/NUM_SAMPLE
+
+def dream_v2(inp, model, opt, eps_angle=1, NUM_SAMPLE=10, DEBUG=False, USE_VAR=True):
+    # Enjoy the sweet dream v2 (rotation only)
+    # inp: a batch of input
+    # model: the model to fall into sleep
+    # opt: the optimizer
+    # eps_angle: the maximal range of small angle perturbation
+    # NUM_SAMPLE: sample times
+    # length: the number of dreams (samples)
+
+    with tf.GradientTape() as tape:
+
+        out = model(tf.cast(inp, dtype=tf.float32))
+
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=out, labels=y) # This assumes the output did not go through softmax
+        loss = tf.reduce_mean(loss)
+
+    params = model.trainable_variables
+    grads = tape.gradient(loss, params) # Get the average gradient (non-persistent because we redo gradient soon)
+
+    # Take one sample, generate an orbit, and suppress the variance in the orbit
+    with tf.GradientTape() as tape:
+        if USE_VAR:
+            r = var(inp, model, NUM_SAMPLE)
+        else:
+            r = dif(inp, model, eps_angle, NUM_SAMPLE)
+        r = tf.math.reduce_mean(r)
+
+    params = model.trainable_variables
+    rgrads = tape.gradient(r, params)
+
+    flattened_g = tf.concat( [tf.reshape(x, [-1]) for x in grads], axis=0 )
+    flattened_rg = tf.concat( [tf.reshape(x, [-1]) for x in rgrads], axis=0 )
+    d = tf.math.reduce_sum(tf.math.multiply(flattened_rg,flattened_g)) / tf.math.reduce_sum(tf.math.multiply(flattened_g,flattened_g))
+    projected_gradient = tuple([rgrads[i]-tf.math.multiply(d,grads[i]) for i in range(len(rgrads))])
+
+    opt.apply(projected_gradient, params)
+
+    return r
