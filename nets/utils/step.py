@@ -1,4 +1,7 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
+import tensorflow_probability as tfp
+
 from random import randrange
 from .transform import *
 
