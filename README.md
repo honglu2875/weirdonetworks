@@ -33,7 +33,7 @@ Need experiment
 ---
 
 # p.s. some math notes on the [experiment](https://github.com/honglu2875/weirdonetworks/blob/main/stability_measuring.ipynb).
-*(THIS IS A RESEARCH PROJECT IN-PROGRESS)*
+*(RESEARCH PROJECT IN-PROGRESS)*
 ```
 Here we propose two metric to describe the stability of a model under a transformation.
 
