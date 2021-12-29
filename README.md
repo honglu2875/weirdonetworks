@@ -6,7 +6,49 @@ This repo includes:
 The NNs are written to fit Deepmind's Sonnet package because of personal preference. The networks are written as a subclass of sonnet.Module
 
 ---
-The networks:
+*(Draft-state research notes below. Work in progress.)*
+## Experiment 1:
+VGG16, ResNet50, MobileNetv3Large, EfficientNetB7 from keras applications. Got the binaries and applied transfer learning by attaching to another 512 Dense layer and trained on 4000 samples of [cats and dogs dataset](https://www.tensorflow.org/tutorials/images/transfer_learning) (binary classification) enhanced with random deformation (rotation, transformation, sheering). All of them achieved > 90% accuracy on non-deformed images(of course!). But applying deformation destroys the stability.
+
+Proposed two quantities: transformation variance and transformation difference (see math notes at the end, need to compile LaTeX). 
+
+Evaluated each model on 100 picture samples (horizontal axis). For each sample applied 10 rotations (evenly between 0 and 360 degrees) and calculated discretized transformation variance and difference. Below are charts. 
+x-axis: sample numbers
+orange line: transformation difference
+blue line: transformation variance
+green line: the average error of prediction under rotation
+
+VGG16![VGG16](https://cdn.discordapp.com/attachments/830931439612723221/925870924291510292/VGG16.png)
+
+ResNet50![ResNet50](https://cdn.discordapp.com/attachments/830931439612723221/925870924077617162/ResNet.png)
+
+MobileNetv3Large![MobileNetv3Large](https://cdn.discordapp.com/attachments/830931439612723221/925870923867881542/MobileNet.png)
+
+EfficientNetB7![EfficientNetB7](https://cdn.discordapp.com/attachments/830931439612723221/925870923628822548/EfficientNet.png)
+
+Observations: accuracies seem to have to do with rotation stability but not entirely correlated. VGG is the worst.
+
+## Experiment 2 (TO BE ADDED)
+Initialize the CNN on a state invariant under rotations and then apply **projected** gradients (projected to the orthonormal complement of gradients of *transformation variance*) in the training can achieve good transformation invariant **even if the model is only trained using non-transformed input!** (Result to be posted. Work on going.)
+
+
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+---
+# Some non-conventional networks:
 (The motivation of keeping this library is to document my hand-written neural networks while experimenting.)
 
 
@@ -32,6 +74,15 @@ Need experiment
 ## (TO BE ADDED)
 ---
 
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+---
 # p.s. some math notes on the [experiment](https://github.com/honglu2875/weirdonetworks/blob/main/stability_measuring.ipynb).
 *(RESEARCH PROJECT IN-PROGRESS)*
 ```
