@@ -54,6 +54,124 @@ def step(inp, y, model, opt, has_batch_norm=False):
     return ret
 
 
+
+def inv_step(inp, y, model, opt, has_batch_norm=False, eps_angle=1, NUM_SAMPLE=10, DEBUG=False, USE_VAR=True, SEP_PROJ=True):
+    # Performs one optimizer step on a single mini-batch.
+    # inp: a batch of input. [batch size, ...]
+    # y: the true value. [batch size]
+    # model: the model to be trained
+    # opt: the optimizer
+
+    with tf.GradientTape() as tape:
+        ###### CAUTION:
+        # If one does not flatten: The model will generate a (_,1) "tensor"
+        # If one flatten ("tf.reshape(_,[-1])"), it gives a (_) 1-dimensional "tensor"
+        #out = tf.reshape(mlp(tf.cast(inp, dtype=tf.float64)),[-1])
+
+        # The output of the model has to be raw logits
+
+        if has_batch_norm:
+            out = model(tf.cast(inp, dtype=tf.float32), is_training=True)
+        else:
+            out = model(tf.cast(inp, dtype=tf.float32))
+
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=out, labels=y) # This assumes the output did not go through softmax
+        loss = tf.reduce_mean(loss)
+
+
+    params = model.trainable_variables
+    grads = tape.gradient(loss, params)
+
+    # Take one sample, generate an orbit, and suppress the variance in the orbit
+    if SEP_PROJ:
+        rgrads = []
+        for i in range(NUM_SAMPLE):
+
+            with tf.GradientTape() as tape:
+                if USE_VAR:
+                    r = var(inp[i:i+1], model, NUM_SAMPLE)
+                else:
+                    r = dif(inp[i:i+1], model, eps_angle, NUM_SAMPLE)
+                r = tf.math.reduce_mean(r)
+
+            rgrads.append( tape.gradient(r, params) )
+
+        # flatten the optimization gradient and the symmetry gradients
+        flattened_g = tf.concat( [tf.reshape(x, [-1]) for x in grads], axis=0 )
+        flattened_rg = [
+                        tf.concat( [tf.reshape(x, [-1]) for x in rgrads[i]], axis=0 ) for i in range(len(rgrads))
+        ]
+
+        # get NUM_SAMPLE many gradient vectors indicating the directions to destroy symmetries
+        normalized_rg = tf.transpose(
+            tfp.math.gram_schmidt(tf.stack(flattened_rg, axis=-1)), (1,0)
+        )
+
+        # get coefficients of flattened gradient on the orthonormal basis
+        d = tf.math.reduce_sum(  flattened_g * normalized_rg, axis=1 )
+
+        # recover the shape of the normalized basis
+        recovered_rg = []
+        size_count = 0
+        for g in grads:
+            size = 1
+            for i in g.shape:
+                size *= i
+
+            recovered_rg.append(
+                tf.reshape(
+                    tf.transpose(
+                        normalized_rg[:, size_count:size_count+size],
+                        (1,0)),
+                    g.shape+(NUM_SAMPLE,))
+            )
+            size_count += size
+
+
+        projected_gradient = tuple([
+                                    grads[i]-tf.reduce_sum(tf.matmul(
+                                        recovered_rg[i], tf.expand_dims(d, axis=-1))
+                                        ,axis=-1)
+                                    for i in range(len(grads))
+                                    ])
+
+    else:
+        with tf.GradientTape() as tape:
+            if USE_VAR:
+                r = var(inp, model, NUM_SAMPLE)
+            else:
+                r = dif(inp, model, eps_angle, NUM_SAMPLE)
+            r = tf.math.reduce_mean(r)
+
+        params = model.trainable_variables
+        rgrads = tape.gradient(r, params)
+
+        flattened_g = tf.concat( [tf.reshape(x, [-1]) for x in grads], axis=0 )
+        flattened_rg = tf.concat( [tf.reshape(x, [-1]) for x in rgrads], axis=0 )
+        d = tf.math.reduce_sum(tf.math.multiply(flattened_g,flattened_rg)) / tf.math.reduce_sum(tf.math.multiply(flattened_rg,flattened_rg))
+        projected_gradient = tuple([grads[i]-tf.math.multiply(d,rgrads[i]) for i in range(len(grads))])
+
+    opt.apply(projected_gradient, params)
+
+    ###DEBUG####
+    #print(grads)
+    #print(params)
+
+    # UPDATE THE VARIABLES
+
+    ### get the norm of the gradient
+    n = tf.constant(0., dtype=tf.float32)
+    for t in projected_gradient:
+        n = tf.math.add(n, tf.nn.l2_loss(tf.reshape(t,[-1])))
+
+    # Generate the return info
+    ret = {}
+    ret['loss'] = loss
+    ret['grad_norm'] = n
+    return ret
+
+
+
 def dream(inp, y, model, opt, D=100, ISO_ONLY=True, DEBUG=False, LAYER_WISE=False):
     # Enjoy the sweet dream
     # inp: the FULL input
